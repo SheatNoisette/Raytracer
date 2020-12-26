@@ -10,9 +10,13 @@ all: $(BIN)
 
 $(BIN): $(OBJS)
 
-debug: CFLAGS += -O0 -g3 -fsanitize=address
-debug: LDLIBS += -fsanitize=address
+debug: CFLAGS += -O0 -g3
+debug: LDLIBS +=
 debug: all
+
+debug-asan: CFLAGS += -fsanitize=address
+debug-asan: LDLIBS += -fsanitize=address
+debug-asan: debug
 
 release: CFLAGS += -flto -O3
 release: LDLIBS += -flto
@@ -21,6 +25,6 @@ release: all
 -include $(DEPS)
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) $(OBJS) $(DEPS)
 
 .PHONY: all clean
