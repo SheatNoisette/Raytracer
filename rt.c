@@ -11,6 +11,7 @@
 #include "normal_material.h"
 #include "obj_loader.h"
 #include "phong_material.h"
+#include "rendering.h"
 #include "scene.h"
 #include "sphere.h"
 #include "triangle.h"
@@ -166,9 +167,6 @@ scene_intersect_ray(struct object_intersection *closest_intersection,
     return closest_intersection_dist;
 }
 
-typedef void (*render_mode_f)(struct rgb_image *, struct scene *, size_t x,
-                              size_t y);
-
 /* For all the pixels of the image, try to find the closest object
 ** intersecting the camera ray. If an object is found, shade the pixel to
 ** find its color.
@@ -277,10 +275,9 @@ int main(int argc, char *argv[])
             renderer = render_distances;
     }
 
-    // render all pixels
-    for (size_t y = 0; y < image->height; y++)
-        for (size_t x = 0; x < image->width; x++)
-            renderer(image, &scene, x, y);
+    // Run the render
+    if (run_renderer(image, &scene, RUNNER_SINGLETHREADED, renderer))
+        errx(2, "Rendering failed!");
 
     // write the rendered image to a bmp file
     FILE *fp = fopen(argv[2], "w");
