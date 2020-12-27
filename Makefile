@@ -1,10 +1,11 @@
-LDLIBS = -lm
+LDLIBS = -lm -pthread
 OBJS = rt.o \
 	src/utils/pvect.o \
 	src/utils/refcnt.o \
 	src/utils/evect.o \
 	src/utils/alloc.o \
 	src/runners/run_single.o \
+	src/runners/run_multi.o \
 	src/rendering.o \
 	src/bmp.o \
 	src/image.o \

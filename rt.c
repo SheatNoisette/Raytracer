@@ -101,7 +101,8 @@ static void build_test_scene(struct scene *scene, double aspect_ratio)
     material_put(&red_material->base);
 }
 
-static void build_obj_scene(struct scene *scene, double aspect_ratio)
+static void build_obj_scene(struct scene *scene, double aspect_ratio,
+                            double fov)
 {
     // setup the scene lighting
     scene->light_intensity = 5;
@@ -121,7 +122,7 @@ static void build_obj_scene(struct scene *scene, double aspect_ratio)
         .up = {0, 1, 0},
         .width = cam_width,
         .height = cam_height,
-        .focal_distance = focal_distance_from_fov(cam_width, 40),
+        .focal_distance = focal_distance_from_fov(cam_width, fov),
     };
 
     vec3_normalize(&scene->camera.forward);
@@ -244,14 +245,15 @@ int main(int argc, char *argv[])
     int rc;
 
     if (argc < 3)
-        errx(1, "Usage: SCENE.obj OUTPUT.bmp [--normals] [--distances]");
+        errx(1, "Usage: SCENE.obj OUTPUT.bmp [--normals] [--distances] "
+                "[--runner=mt/realtime/single]");
 
     struct scene scene;
     scene_init(&scene);
 
     // initialize the frame buffer (the buffer that will store the result of the
     // rendering)
-    struct rgb_image *image = rgb_image_alloc(1000, 1000);
+    struct rgb_image *image = rgb_image_alloc(1920, 1080);
 
     // set all the pixels of the image to black
     struct rgb_pixel bg_color = {0};
@@ -260,7 +262,7 @@ int main(int argc, char *argv[])
     double aspect_ratio = (double)image->width / image->height;
 
     // build the scene
-    build_obj_scene(&scene, aspect_ratio);
+    build_obj_scene(&scene, aspect_ratio, 90);
 
     if (load_obj(&scene, argv[1]))
         return 41;

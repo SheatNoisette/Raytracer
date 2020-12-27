@@ -4,4 +4,6 @@
 \#*\#
 *~
 *.bmp
+*.jpg
+*.png
 .clang_complete

@@ -9,6 +9,7 @@
 #include "obj_loader.h"
 #include "phong_material.h"
 #include "rendering.h"
+#include "runners/run_multi.h"
 #include "runners/run_single.h"
 #include "scene.h"
 #include "sphere.h"
@@ -40,7 +41,7 @@ int run_renderer(struct rgb_image *image, struct scene *scene,
     if (runner == RUNNER_SINGLETHREADED)
         return runner_singlethread(image, scene, renderer);
     else if (runner == RUNNER_MULTITHREADED)
-        warnx("MULTITHREADING NOT IMPLEMENTED!");
+        return runner_multithread(image, scene, renderer);
     else if (runner == RUNNER_REALTIME)
         warnx("REALTIME NOT IMPLEMENTED!");
 
