@@ -4,6 +4,7 @@ OBJS = rt.o \
 	src/utils/refcnt.o \
 	src/utils/evect.o \
 	src/utils/alloc.o \
+	src/runners/run_single.o \
 	src/rendering.o \
 	src/bmp.o \
 	src/image.o \

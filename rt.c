@@ -265,18 +265,26 @@ int main(int argc, char *argv[])
     if (load_obj(&scene, argv[1]))
         return 41;
 
-    // parse options
+    // Options variables
     render_mode_f renderer = render_shaded;
+    // By default, the runner is single threaded
+    enum runner_type runner = RUNNER_SINGLETHREADED;
+
+    // Parse options
     for (int i = 3; i < argc; i++)
     {
         if (strcmp(argv[i], "--normals") == 0)
             renderer = render_normals;
         else if (strcmp(argv[i], "--distances") == 0)
             renderer = render_distances;
+        else if (strncmp(argv[i], "--runner", 8) == 0)
+            runner = get_runner_opt(argv[i] + 8);
+        else
+            warnx("Unknown option '%s'", argv[i]);
     }
 
-    // Run the render
-    if (run_renderer(image, &scene, RUNNER_SINGLETHREADED, renderer))
+    // Run the renderer
+    if (run_renderer(image, &scene, runner, renderer))
         errx(2, "Rendering failed!");
 
     // write the rendered image to a bmp file

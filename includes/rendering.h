@@ -19,7 +19,9 @@ typedef void (*render_mode_f)(struct rgb_image *, struct scene *, size_t x,
 enum runner_type
 {
     RUNNER_MULTITHREADED,
-    RUNNER_SINGLETHREADED
+    RUNNER_SINGLETHREADED,
+    RUNNER_REALTIME,
+    RUNNER_UNKNOWN
 };
 
 /*
@@ -27,5 +29,10 @@ enum runner_type
 */
 int run_renderer(struct rgb_image *image, struct scene *scene,
                  enum runner_type runner, render_mode_f renderer);
+
+/*
+** Get runner type from options parser
+*/
+enum runner_type get_runner_opt(char *input);
 
 #endif
