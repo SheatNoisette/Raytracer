@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "antialias.h"
 #include "bmp.h"
 #include "camera.h"
 #include "image.h"
@@ -242,35 +243,40 @@ static void render_distances(struct rgb_image *image, struct scene *scene,
 
 int main(int argc, char *argv[])
 {
-    int rc;
-
-    if (argc < 3)
-        errx(1, "Usage: SCENE.obj OUTPUT.bmp [--normals] [--distances] "
-                "[--runner=mt/realtime/single]");
-
+    // Return code of the application
+    int return_code;
+    // Out scene
     struct scene scene;
+    // The final image
+    struct rgb_image *image;
+    render_mode_f renderer;
+    // Type of runner for rendering
+    enum runner_type runner;
+    // Type of anti-aliasing used
+    enum aa_type aalias_type = ANTIALIAS_NONE;
+    // Aspect ratio for the camera
+    double aspect_ratio;
+    // Size of the image - Default is 100x100
+    size_t width = 100;
+    size_t height = 100;
+    // Number of threads used
+    size_t threads = 4;
+
+    // Check if we have the minimum of arguments
+    if (argc < 3)
+    {
+        errx(1, "Usage: SCENE.obj OUTPUT.bmp [--normals] [--distances] "
+                "[--runner=mt/realtime/single] [--width=100] [--height=100] "
+                "[--threads=4] [--aa=none/ssaa2x/ssaa4x");
+    }
+
+    // Create the scene
     scene_init(&scene);
 
-    // initialize the frame buffer (the buffer that will store the result of the
-    // rendering)
-    struct rgb_image *image = rgb_image_alloc(1920, 1080);
-
-    // set all the pixels of the image to black
-    struct rgb_pixel bg_color = {0};
-    rgb_image_clear(image, &bg_color);
-
-    double aspect_ratio = (double)image->width / image->height;
-
-    // build the scene
-    build_obj_scene(&scene, aspect_ratio, 90);
-
-    if (load_obj(&scene, argv[1]))
-        return 41;
-
     // Options variables
-    render_mode_f renderer = render_shaded;
+    renderer = render_shaded;
     // By default, the runner is single threaded
-    enum runner_type runner = RUNNER_SINGLETHREADED;
+    runner = RUNNER_SINGLETHREADED;
 
     // Parse options
     for (int i = 3; i < argc; i++)
@@ -281,24 +287,61 @@ int main(int argc, char *argv[])
             renderer = render_distances;
         else if (strncmp(argv[i], "--runner", 8) == 0)
             runner = get_runner_opt(argv[i] + 8);
+        else if (strncmp(argv[i], "--aa", 4) == 0)
+            aalias_type = select_alias_opt(argv[i] + 4);
+        else if (strncmp(argv[i], "--width", 7) == 0)
+            width = atoi(argv[i] + 8);
+        else if (strncmp(argv[i], "--height", 8) == 0)
+            height = atoi(argv[i] + 9);
+        else if (strncmp(argv[i], "--threads", 9) == 0)
+            threads = atoi(argv[i] + 10);
         else
             warnx("Unknown option '%s'", argv[i]);
     }
+    // Check the image size
+    if (width == 0 || height == 0)
+        errx(3, "Invalid size - width: %li height: %li", width, height);
 
-    // Run the renderer
-    if (run_renderer(image, &scene, runner, renderer))
+    // initialize the frame buffer (the buffer that will store the result of the
+    // rendering)
+    warnx("Initializing base frame buffer width: %li height: %li...", width,
+          height);
+    image = rgb_image_alloc(width, height);
+
+    // Apply necessary modifications for anti aliasing techniques
+    preprocess_antialias(aalias_type, &image);
+
+    // set all the pixels of the image to black
+    struct rgb_pixel bg_color = {0};
+    rgb_image_clear(image, &bg_color);
+
+    // Get the aspect ratio
+    aspect_ratio = (double)image->width / image->height;
+
+    // build the scene
+    build_obj_scene(&scene, aspect_ratio, 90);
+
+    // Check if we can't load the model
+    if (load_obj(&scene, argv[1]))
+        return 41;
+
+    // Run the renderer and use the runner selected
+    if (run_renderer(image, &scene, runner, renderer, threads))
         errx(2, "Rendering failed!");
+
+    // Apply a post processing anti aliasing
+    postprocess_antialias(aalias_type, &image);
 
     // write the rendered image to a bmp file
     FILE *fp = fopen(argv[2], "w");
     if (fp == NULL)
         err(1, "failed to open the output file");
 
-    rc = bmp_write(image, ppm_from_ppi(80), fp);
+    return_code = bmp_write(image, ppm_from_ppi(80), fp);
     fclose(fp);
 
     // release resources
     scene_destroy(&scene);
     free(image);
-    return rc;
+    return return_code;
 }

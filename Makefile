@@ -15,6 +15,7 @@ OBJS = rt.o \
 	src/scene.o \
 	src/triangle.o \
 	src/obj_loader.o \
+	src/antialias.o \
 	src/normal_material.o
 
 DEPS = $(OBJS:.o=.d)

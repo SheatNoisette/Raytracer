@@ -16,6 +16,9 @@
 #include "triangle.h"
 #include "vec3.h"
 
+// Number of runners
+#define RUNNERS_NB 4
+
 /*
 ** Get runner type from options parser
 */
@@ -33,15 +36,29 @@ enum runner_type get_runner_opt(char *input)
 }
 
 /*
+** Get the name of the runner
+*/
+static char *runner_str(enum runner_type runner)
+{
+    char *runners[RUNNERS_NB]
+        = {"SINGLETHREADED", "MULTI-THREADED", "REALTIME", "UNKNOWN"};
+    return runners[(int)runner];
+}
+
+/*
 ** Run the renderer
 */
 int run_renderer(struct rgb_image *image, struct scene *scene,
-                 enum runner_type runner, render_mode_f renderer)
+                 enum runner_type runner, render_mode_f renderer,
+                 size_t threads)
 {
+    // Logging
+    warnx("Using '%s' runner.", runner_str(runner));
+
     if (runner == RUNNER_SINGLETHREADED)
         return runner_singlethread(image, scene, renderer);
     else if (runner == RUNNER_MULTITHREADED)
-        return runner_multithread(image, scene, renderer);
+        return runner_multithread(image, scene, renderer, threads);
     else if (runner == RUNNER_REALTIME)
         warnx("REALTIME NOT IMPLEMENTED!");
 

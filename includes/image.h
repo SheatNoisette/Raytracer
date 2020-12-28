@@ -27,3 +27,9 @@ static inline void rgb_image_set(struct rgb_image *image, size_t x, size_t y,
 {
     image->data[image->width * y + x] = pixel;
 }
+
+static inline struct rgb_pixel rgb_image_get(struct rgb_image *image, size_t x,
+                                             size_t y)
+{
+    return image->data[image->width * y + x];
+}

@@ -17,9 +17,6 @@
 #include "utils/alloc.h"
 #include "vec3.h"
 
-// Hardcoded for now
-#define THREADS_NB 8
-
 /*
 ** Split task for threads
 */
@@ -61,7 +58,7 @@ void *worker(void *arg)
     // Get arguments
     struct mt_worker_args *worker_data = (struct mt_worker_args *)arg;
 
-    printf("THREAD: FROM %li TO %li\n", worker_data->y_from, worker_data->y_to);
+    printf("MT: FROM %li TO %li\n", worker_data->y_from, worker_data->y_to);
     fflush(stdout);
 
     // Apply the renderer to some pixels of the image
@@ -76,16 +73,21 @@ void *worker(void *arg)
 ** Multithreaded runner
 */
 int runner_multithread(struct rgb_image *image, struct scene *scene,
-                       render_mode_f renderer)
+                       render_mode_f renderer, size_t threads_requested)
 {
-    size_t thread_number = THREADS_NB; /* Number of thread requested */
+    size_t thread_number
+        = threads_requested; /* Number of thread(s) requested */
     pthread_t *threads; /* Pthread ID */
     size_t current_thread;
     // This is the structure given to the threads as data
     struct mt_worker_args **thread_data;
 
     // Check the number of thread
-    // @TODO: Todo
+    if (thread_number == 0)
+        warnx("Invalid number of threads - Got %li, expected at least 1",
+              thread_number);
+    else
+        warnx("MULTI-THREADED RUNNER - Using %li threads", thread_number);
 
     // Create a array of thread id
     threads = xalloc(thread_number * sizeof(pthread_t));
@@ -120,6 +122,8 @@ int runner_multithread(struct rgb_image *image, struct scene *scene,
         free(thread_data[i]);
 
     free(thread_data);
+
+    warnx("MT - Complete");
 
     // Success!
     return 0;

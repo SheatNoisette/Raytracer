@@ -25,6 +25,6 @@ struct mt_worker_args
 };
 
 int runner_multithread(struct rgb_image *image, struct scene *scene,
-                       render_mode_f renderer);
+                       render_mode_f renderer, size_t threads);
 
 #endif

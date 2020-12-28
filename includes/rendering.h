@@ -18,8 +18,8 @@ typedef void (*render_mode_f)(struct rgb_image *, struct scene *, size_t x,
 */
 enum runner_type
 {
+    RUNNER_SINGLETHREADED = 0,
     RUNNER_MULTITHREADED,
-    RUNNER_SINGLETHREADED,
     RUNNER_REALTIME,
     RUNNER_UNKNOWN
 };
@@ -28,7 +28,8 @@ enum runner_type
 ** Run if it's single threaded, multi-threaded or realtime
 */
 int run_renderer(struct rgb_image *image, struct scene *scene,
-                 enum runner_type runner, render_mode_f renderer);
+                 enum runner_type runner, render_mode_f renderer,
+                 size_t threads);
 
 /*
 ** Get runner type from options parser
