@@ -47,6 +47,8 @@ int mt_split_tasks(struct rgb_image *image, struct scene *scene,
     }
 
     // For now, only the last thread have more work
+    args_lists[threads - 1]->y_to += nb_line_thread_remain;
+
     return 0;
 }
 
