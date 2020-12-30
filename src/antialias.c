@@ -8,8 +8,8 @@
 /*
 ** Downscale image using a downscale factor
 */
-void downscale_image_aa(struct rgb_image *input, struct rgb_image *output,
-                        size_t factor)
+static void downscale_image_aa(struct rgb_image *input,
+                               struct rgb_image *output, size_t factor)
 {
     for (size_t y = 0; y < output->height; y++)
     {
@@ -40,6 +40,48 @@ void downscale_image_aa(struct rgb_image *input, struct rgb_image *output,
             average_pixel.b = (average_b / factor) & 0xFF;
 
             rgb_image_set(output, x, y, average_pixel);
+        }
+    }
+}
+
+/*
+** Downscale image using Bilinear downscale
+*/
+static void downscale_image_bilinear(struct rgb_image *input,
+                                     struct rgb_image *output)
+{
+    float Xratio = (((float)input->width - 1) / output->width);
+    float Yratio = (((float)input->height - 1) / output->height);
+    float x2, y2;
+    struct rgb_pixel A, B, C, D;
+    size_t x, y, index;
+    float blue, green, red;
+
+    for (size_t j = 0; j < output->height; j++)
+    {
+        for (size_t i = 0; i < output->width; i++)
+        {
+            x = (size_t)(Xratio * i);
+            y = (size_t)(Yratio * j);
+            x2 = (Xratio * i) - x;
+            y2 = (Yratio * j) - y;
+            index = (y * input->width + x);
+            A = input->data[index];
+            B = input->data[index + 1];
+            C = input->data[index + input->width];
+            D = input->data[index + input->width + 1];
+
+            red = (A.r * (1 - y2) * (1 - x2) + B.r * x2 * (1 - y2)
+                   + C.r * y2 * (1 - x2) + D.r * y2 * x2);
+            green = (A.g * (1 - y2) * (1 - x2) + B.g * x2 * (1 - y2)
+                     + C.g * y2 * (1 - x2) + D.g * y2 * x2);
+
+            blue = ((A.b) * (1 - y2) * (1 - x2) + (B.b) * x2 * (1 - y2)
+                    + (C.b) * y2 * (1 - x2) + (D.b) * y2 * x2);
+
+            output->data[i + j * output->width].r = red;
+            output->data[i + j * output->width].g = green;
+            output->data[i + j * output->width].b = blue;
         }
     }
 }
@@ -127,7 +169,8 @@ void postprocess_antialias(enum aa_type aalias_type, struct rgb_image **image)
           width / downscale_factor, height / downscale_factor);
 
     // Do the downscale
-    downscale_image_aa(image_p, downscaled, downscale_factor);
+    // downscale_image_aa(image_p, downscaled, downscale_factor);
+    downscale_image_bilinear(image_p, downscaled);
 
     // Logging
     warnx("AA - Completed downscale");
