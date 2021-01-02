@@ -1,10 +1,15 @@
 #include "phong_material.h"
 #include "scene.h"
 
+#define MAX_DEPTH 2
+
+double scene_intersect_ray(struct object_intersection *closest_intersection,
+                           const struct scene *scene, struct ray *ray);
+
 struct vec3 phong_metarial_shade(const struct material *base_material,
                                  const struct intersection *inter,
                                  const struct scene *scene,
-                                 const struct ray *ray)
+                                 const struct ray *ray, size_t depth)
 {
     const struct phong_material *mat
         = (const struct phong_material *)base_material;
@@ -41,13 +46,36 @@ struct vec3 phong_metarial_shade(const struct material *base_material,
         specular_contribution = vec3_mul(&scene->light_color, spec_coeff);
     }
 
-    double ambient_intensity = 0.1;
+    double ambient_intensity = 0.2;
     struct vec3 ambient_contribution
         = vec3_mul(&mat->surface_color, ambient_intensity);
+
+    // Reflexion
+    struct ray reflexion
+        = {.source = inter->point,
+           .direction = vec3_reflect(&ray->direction, &inter->normal)};
+
+    // Object new intersection
+    struct object_intersection new_intersection;
 
     struct vec3 pix_color = {0};
     pix_color = vec3_add(&pix_color, &ambient_contribution);
     pix_color = vec3_add(&pix_color, &diffuse_contribution);
     pix_color = vec3_add(&pix_color, &specular_contribution);
-    return pix_color;
+
+    // Check the recursion depth
+    if (depth == MAX_DEPTH
+        || isinf(scene_intersect_ray(&new_intersection, scene, &reflexion)))
+    {
+        return pix_color;
+    }
+
+    struct vec3 bounce = phong_metarial_shade(base_material, &new_intersection,
+                                              scene, &reflexion, depth + 1);
+
+    // Make the average between the old color and the new (bounced ray shaded)
+    struct vec3 final_pixel = vec3_add(&bounce, &pix_color);
+    final_pixel = vec3_mul(&final_pixel, .5f);
+
+    return final_pixel;
 }

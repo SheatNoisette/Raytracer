@@ -4,6 +4,8 @@
 #include "utils/refcnt.h"
 #include "vec3.h"
 
+#include <stddef.h>
+
 /*
 ** The location and normal of an intersection.
 */
@@ -26,7 +28,7 @@ struct material;
 typedef struct vec3 (*material_shader_f)(const struct material *material,
                                          const struct intersection *inter,
                                          const struct scene *scene,
-                                         const struct ray *ray);
+                                         const struct ray *ray, size_t depth);
 
 /* A generic material type.
 ** As how materials are shaded entirely depends on the shader type,

@@ -145,9 +145,8 @@ static struct ray image_cast_ray(const struct rgb_image *image,
     return ray;
 }
 
-static double
-scene_intersect_ray(struct object_intersection *closest_intersection,
-                    struct scene *scene, struct ray *ray)
+double scene_intersect_ray(struct object_intersection *closest_intersection,
+                           struct scene *scene, struct ray *ray)
 {
     // we will now try to find the closest object in the scene
     // intersecting this ray
@@ -188,7 +187,7 @@ static void render_shaded(struct rgb_image *image, struct scene *scene,
 
     struct material *mat = closest_intersection.material;
     struct vec3 pix_color
-        = mat->shade(mat, &closest_intersection.location, scene, &ray);
+        = mat->shade(mat, &closest_intersection.location, scene, &ray, 0);
     rgb_image_set(image, x, y, rgb_color_from_light(&pix_color));
 }
 
@@ -211,7 +210,7 @@ static void render_normals(struct rgb_image *image, struct scene *scene,
 
     struct material *mat = closest_intersection.material;
     struct vec3 pix_color = normal_material.shade(
-        mat, &closest_intersection.location, scene, &ray);
+        mat, &closest_intersection.location, scene, &ray, 0);
     rgb_image_set(image, x, y, rgb_color_from_light(&pix_color));
 }
 

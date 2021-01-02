@@ -26,7 +26,7 @@ struct phong_material
 struct vec3 phong_metarial_shade(const struct material *material,
                                  const struct intersection *inter,
                                  const struct scene *scene,
-                                 const struct ray *ray);
+                                 const struct ray *ray, size_t depth);
 
 static inline void phong_material_init(struct phong_material *mat)
 {
