@@ -13,11 +13,13 @@ static struct vec3 normal_color(const struct vec3 *normal)
 
 struct vec3 normal_shader(const struct material *base_material,
                           const struct intersection *inter,
-                          const struct scene *scene, const struct ray *ray)
+                          const struct scene *scene, const struct ray *ray,
+                          size_t depth)
 {
     (void)base_material;
     (void)scene;
     (void)ray;
+    (void)depth;
     return normal_color(&inter->normal);
 }
 

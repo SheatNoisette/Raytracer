@@ -5,7 +5,6 @@
 *~
 *.bmp
 *.jpg
-*.png
 .clang_complete
 *_test.obj
 *_test.mtl

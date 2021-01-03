@@ -74,9 +74,13 @@ struct vec3 phong_metarial_shade(const struct material *base_material,
                                               &new_intersection.location, scene,
                                               &reflexion, depth + 1);
 
+    const struct phong_material *mat_bounce
+        = (const struct phong_material *)new_intersection.material;
+
     // Make the average between the old color and the new (bounced ray shaded)
-    struct vec3 final_pixel = vec3_add(&bounce, &pix_color);
-    final_pixel = vec3_mul(&final_pixel, .5f);
+    struct vec3 bounce_ks = vec3_mul(&bounce, mat_bounce->spec_Ks);
+    // struct vec3 older_ks = vec3_mul(&pix_color, mat->spec_Ks);
+    struct vec3 final_pixel = vec3_add(&bounce_ks, &pix_color);
 
     return final_pixel;
 }
