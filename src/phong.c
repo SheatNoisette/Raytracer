@@ -70,8 +70,9 @@ struct vec3 phong_metarial_shade(const struct material *base_material,
         return pix_color;
     }
 
-    struct vec3 bounce = phong_metarial_shade(base_material, &new_intersection,
-                                              scene, &reflexion, depth + 1);
+    struct vec3 bounce = phong_metarial_shade(new_intersection.material,
+                                              &new_intersection.location, scene,
+                                              &reflexion, depth + 1);
 
     // Make the average between the old color and the new (bounced ray shaded)
     struct vec3 final_pixel = vec3_add(&bounce, &pix_color);
