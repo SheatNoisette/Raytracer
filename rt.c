@@ -47,6 +47,7 @@ struct rgb_pixel rgb_color_from_light(const struct vec3 *light)
     return res;
 }
 
+#if 0
 static void build_test_scene(struct scene *scene, double aspect_ratio)
 {
     // create a sample red material
@@ -101,6 +102,7 @@ static void build_test_scene(struct scene *scene, double aspect_ratio)
     // release the reference to the material
     material_put(&red_material->base);
 }
+#endif
 
 static void build_obj_scene(struct scene *scene, double aspect_ratio,
                             double fov)

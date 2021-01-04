@@ -5,8 +5,11 @@
 #include "antialias.h"
 #include "image.h"
 
+#define USE_BILINEAR 1
+
+#if (!USE_BILINEAR)
 /*
-** Downscale image using a downscale factor
+** Downscale image using a downscale factor, linear interpolation
 */
 static void downscale_image_aa(struct rgb_image *input,
                                struct rgb_image *output, size_t factor)
@@ -43,48 +46,57 @@ static void downscale_image_aa(struct rgb_image *input,
         }
     }
 }
+#endif
 
+#if USE_BILINEAR
 /*
 ** Downscale image using Bilinear downscale
 */
 static void downscale_image_bilinear(struct rgb_image *input,
                                      struct rgb_image *output)
 {
-    float Xratio = (((float)input->width - 1) / output->width);
-    float Yratio = (((float)input->height - 1) / output->height);
-    float x2, y2;
-    struct rgb_pixel A, B, C, D;
-    size_t x, y, index;
+    float X_ratio = (((float)input->width - 1) / output->width);
+    float Y_ratio = (((float)input->height - 1) / output->height);
     float blue, green, red;
 
     for (size_t j = 0; j < output->height; j++)
     {
         for (size_t i = 0; i < output->width; i++)
         {
-            x = (size_t)(Xratio * i);
-            y = (size_t)(Yratio * j);
-            x2 = (Xratio * i) - x;
-            y2 = (Yratio * j) - y;
-            index = (y * input->width + x);
-            A = input->data[index];
-            B = input->data[index + 1];
-            C = input->data[index + input->width];
-            D = input->data[index + input->width + 1];
+            size_t x = (size_t)(X_ratio * i);
+            size_t y = (size_t)(Y_ratio * j);
+            float x2 = (X_ratio * i) - x;
+            float y2 = (Y_ratio * j) - y;
 
-            red = (A.r * (1 - y2) * (1 - x2) + B.r * x2 * (1 - y2)
-                   + C.r * y2 * (1 - x2) + D.r * y2 * x2);
-            green = (A.g * (1 - y2) * (1 - x2) + B.g * x2 * (1 - y2)
-                     + C.g * y2 * (1 - x2) + D.g * y2 * x2);
+            // Build the downscale matrix
+            struct rgb_pixel mx = rgb_image_get(input, x, y);
+            struct rgb_pixel mxX = rgb_image_get(input, x + 1, y);
+            struct rgb_pixel mxY = rgb_image_get(input, x, y + 1);
+            struct rgb_pixel mxXY = rgb_image_get(input, x + 1, y + 1);
 
-            blue = ((A.b) * (1 - y2) * (1 - x2) + (B.b) * x2 * (1 - y2)
-                    + (C.b) * y2 * (1 - x2) + (D.b) * y2 * x2);
+            // Using the ratio and the dowscale matrix, interpolate.
+            red = (mx.r * (1 - y2) * (1 - x2) + mxX.r * x2 * (1 - y2)
+                   + mxY.r * y2 * (1 - x2) + mxXY.r * y2 * x2);
 
-            output->data[i + j * output->width].r = red;
-            output->data[i + j * output->width].g = green;
-            output->data[i + j * output->width].b = blue;
+            green = (mx.g * (1 - y2) * (1 - x2) + mxX.g * x2 * (1 - y2)
+                     + mxY.g * y2 * (1 - x2) + mxXY.g * y2 * x2);
+
+            blue = (mx.b * (1 - y2) * (1 - x2) + mxX.b * x2 * (1 - y2)
+                    + mxY.b * y2 * (1 - x2) + mxXY.b * y2 * x2);
+
+            // Set the downscaled pixel
+            struct rgb_pixel tmp;
+
+            tmp.r = red;
+            tmp.g = green;
+            tmp.b = blue;
+
+            // Set the pixel into the surface
+            rgb_image_set(output, i, j, tmp);
         }
     }
 }
+#endif
 
 /*
 ** Select the correct Anti-alias setting from argument parser
@@ -169,8 +181,11 @@ void postprocess_antialias(enum aa_type aalias_type, struct rgb_image **image)
           width / downscale_factor, height / downscale_factor);
 
     // Do the downscale
-    // downscale_image_aa(image_p, downscaled, downscale_factor);
+#if USE_BILINEAR
     downscale_image_bilinear(image_p, downscaled);
+#else
+    downscale_image_aa(image_p, downscaled, downscale_factor);
+#endif
 
     // Logging
     warnx("AA - Completed downscale");
