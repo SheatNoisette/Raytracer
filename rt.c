@@ -267,8 +267,8 @@ int main(int argc, char *argv[])
     if (argc < 3)
     {
         errx(1, "Usage: SCENE.obj OUTPUT.bmp [--normals] [--distances] "
-                "[--runner=mt/realtime/single] [--width=100] [--height=100] "
-                "[--threads=4] [--aa=none/ssaa2x/ssaa4x");
+                "[--runner=mt/single] [--width=100] [--height=100] "
+                "[--threads=4] [--aa=none/ssaa2x/ssaa4x]");
     }
 
     // Create the scene
