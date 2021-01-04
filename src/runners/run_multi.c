@@ -60,6 +60,7 @@ void *worker(void *arg)
     // Get arguments
     struct mt_worker_args *worker_data = (struct mt_worker_args *)arg;
 
+    // Logging
     printf("MT: FROM %li TO %li\n", worker_data->y_from, worker_data->y_to);
     fflush(stdout);
 
@@ -93,24 +94,28 @@ int runner_multithread(struct rgb_image *image, struct scene *scene,
 
     // Create a array of thread id
     threads = xalloc(thread_number * sizeof(pthread_t));
+
     // Create the thread argument list
     thread_data = xalloc(thread_number * sizeof(struct mt_worker_args));
-    // Set arguments array and divide task
+
+    // Set arguments array and divide task for threads
     mt_split_tasks(image, scene, renderer, thread_data, thread_number);
 
     // Spawn the threads and give them data
     for (current_thread = 0; current_thread < thread_number; current_thread++)
     {
+        // Spawn a thread and set the data for each of them
         if (pthread_create(&threads[current_thread], NULL, worker,
                            thread_data[current_thread])
             != 0)
         {
+            // The thread creation failed
             warnx("Failed thread creation");
             return 1;
         }
     }
 
-    // Join thread(s) (Required to make printf work in multi-threading)
+    // Join thread(s) when task is finished
     for (current_thread = 0; current_thread < thread_number; current_thread++)
     {
         pthread_join(threads[current_thread], NULL);
@@ -123,8 +128,10 @@ int runner_multithread(struct rgb_image *image, struct scene *scene,
     for (size_t i = 0; i < thread_number; i++)
         free(thread_data[i]);
 
+    // Free the thread data array containet
     free(thread_data);
 
+    // Logging - Completed render
     warnx("MT - Complete");
 
     // Success!

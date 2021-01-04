@@ -20,6 +20,7 @@ int runner_singlethread(struct rgb_image *image, struct scene *scene,
     for (size_t y = 0; y < image->height; y++)
         for (size_t x = 0; x < image->width; x++)
             renderer(image, scene, x, y);
+
     // Success!
     return 0;
 }

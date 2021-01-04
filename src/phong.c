@@ -50,36 +50,39 @@ struct vec3 phong_metarial_shade(const struct material *base_material,
     struct vec3 ambient_contribution
         = vec3_mul(&mat->surface_color, ambient_intensity);
 
-    // Reflexion
-    struct ray reflexion
-        = {.source = inter->point,
-           .direction = vec3_reflect(&ray->direction, &inter->normal)};
-
-    // Object new intersection
-    struct object_intersection new_intersection;
-
     struct vec3 pix_color = {0};
     pix_color = vec3_add(&pix_color, &ambient_contribution);
     pix_color = vec3_add(&pix_color, &diffuse_contribution);
     pix_color = vec3_add(&pix_color, &specular_contribution);
 
-    // Check the recursion depth
+    // Create a new ray that has ben reflected
+    struct ray reflexion
+        = {.source = inter->point,
+           .direction = vec3_reflect(&ray->direction, &inter->normal)};
+
+    // The new ray intersection
+    struct object_intersection new_intersection;
+
+    // Check the recursion depth and check if our new intersection isn't sent
+    // To the **VOID**. If so, return the last valid material color.
     if (depth == MAX_DEPTH
         || isinf(scene_intersect_ray(&new_intersection, scene, &reflexion)))
     {
         return pix_color;
     }
 
+    // Compute the material color for the reflected ray recursively
     struct vec3 bounce = phong_metarial_shade(new_intersection.material,
                                               &new_intersection.location, scene,
                                               &reflexion, depth + 1);
 
+    // Get the phong material from the new material of which the ray bounced
     const struct phong_material *mat_bounce
         = (const struct phong_material *)new_intersection.material;
 
-    // Make the average between the old color and the new (bounced ray shaded)
+    // Set the reflexion Ks to the material which new ray touched
     struct vec3 bounce_ks = vec3_mul(&bounce, mat_bounce->spec_Ks);
-    // struct vec3 older_ks = vec3_mul(&pix_color, mat->spec_Ks);
+    // Add the reflexion material color to the previous material color
     struct vec3 final_pixel = vec3_add(&bounce_ks, &pix_color);
 
     return final_pixel;

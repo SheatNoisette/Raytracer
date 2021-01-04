@@ -103,6 +103,7 @@ static void downscale_image_bilinear(struct rgb_image *input,
 */
 enum aa_type select_alias_opt(char *option)
 {
+    // Check if the options after '='
     if (strcmp(option, "=ssaa2x") == 0)
         return ANTIALIAS_SSAA_2X;
     else if (strcmp(option, "=ssaa4x") == 0)
@@ -135,6 +136,7 @@ void preprocess_antialias(enum aa_type aalias_type, struct rgb_image **image)
     if (aalias_type == ANTIALIAS_NONE)
         return;
 
+    // Set the SSAA upscale factor (such as 2X / 4X)
     if (aalias_type == ANTIALIAS_SSAA_2X)
         upscale_factor = SSAA_2X_UPSCALE_FACTOR;
     else if (aalias_type == ANTIALIAS_SSAA_4X)
