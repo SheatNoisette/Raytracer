@@ -8,6 +8,7 @@ This simple raytracer support:
 
 # Usage
 
+```
 SCENE.obj: The scene as Wavefront OBJ format
 OUTPUT.bmp: The output image
 
@@ -23,3 +24,4 @@ Here is the optionals arguments:
 --threads=4: Set the number of threads for the 'mt' runner, default is 4
 --aa=none/ssaa2x/ssaa4x: Set the antialiasing method (none, using SSAA 2X or 4X)
    The default is 'none'
+```
