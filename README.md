@@ -4,7 +4,7 @@ This simple raytracer support:
  * Multi-threading
  * Single threading without PThread support
  * SSAA 2x and SSAA 4x (Super Sampling Anti-Aliasing)
- * Reflexions
+ * Reflections
 
 # Usage
 
@@ -25,3 +25,7 @@ Here is the optionals arguments:
 --aa=none/ssaa2x/ssaa4x: Set the antialiasing method (none, using SSAA 2X or 4X)
    The default is 'none'
 ```
+
+# License
+
+This work is licensed under the MIT License, see ```license``` for more details.
